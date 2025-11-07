@@ -1,9 +1,13 @@
 import type { Metadata, Viewport } from 'next';
+import { cookies } from 'next/headers';
+import type { Session } from '@supabase/supabase-js';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Inter } from 'next/font/google';
 import { ReactNode } from 'react';
 import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { cn } from '@/lib/utils/cn';
+import { HeaderActions } from '@/components/layout/header-actions';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -42,7 +46,20 @@ export const viewport: Viewport = {
   themeColor: '#f97316'
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  let session: Session | null = null;
+  const hasSupabaseEnv = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  if (hasSupabaseEnv) {
+    const supabase = createServerComponentClient({ cookies });
+    const {
+      data: { session: currentSession }
+    } = await supabase.auth.getSession();
+    session = currentSession;
+  }
+
   return (
     <html lang="es" className="h-full">
       <body className={cn('min-h-screen bg-neutral-100', inter.className)}>
@@ -58,12 +75,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     Tu recetario inteligente, instalable y colaborativo
                   </span>
                 </div>
-                <a
-                  className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-                  href="/app"
-                >
-                  Entrar
-                </a>
+                <HeaderActions initialSession={session} />
               </div>
             </header>
             <main className="flex-1">{children}</main>

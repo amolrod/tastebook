@@ -6,8 +6,6 @@
 2. Configurar variables de entorno:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `SUPABASE_DB_PASSWORD`
    - `FEATURE_AI_EXTRACT` (opcional, `false` por defecto)
    - `NEXT_PUBLIC_SENTRY_DSN` (opcional)
 3. Añadir script `pnpm generate:icons` como paso previo (local) antes del primer despliegue para asegurar iconos presentes.
@@ -18,8 +16,7 @@
 - Plan gratuito (Free Tier).
 - Provisionar proyecto y copiar URL + anon key.
 - Ejecutar la migración `supabase/migrations/0001_create_recipes.sql` (CLI `supabase db push` o consola SQL).
-- Definir las variables de entorno privadas en Vercel (`SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_PASSWORD`).
-- RLS activo: mientras no haya Auth, el API usa el service role y fija `owner_id` a un identificador demo.
+- RLS activo: los endpoints usan sesiones Supabase (`createRouteHandlerClient`); asegúrate de activar el correo mágico y/o GitHub en la consola de Supabase.
 
 ## GitHub Actions (CI/CD)
 

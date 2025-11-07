@@ -1,23 +1,7 @@
-import 'server-only';
+// Obsoleto: el uso del service role fue reemplazado por `createRouteHandlerClient`
+// con políticas RLS en los endpoints API.
+// Mantenemos un stub para evitar breaking changes en imports legacy.
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-let cachedClient: SupabaseClient | null = null;
-
-export function getAdminSupabaseClient(): SupabaseClient | null {
-  if (!url || !serviceRoleKey) {
-    return null;
-  }
-  if (!cachedClient) {
-    cachedClient = createClient(url, serviceRoleKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false
-      }
-    });
-  }
-  return cachedClient;
+export function getAdminSupabaseClient() {
+  return null;
 }

@@ -7,7 +7,7 @@ Tabla `recipes` en Postgres (Supabase) para almacenar los resultados del parser.
 | Columna            | Tipo        | Descripción                                               |
 | ------------------ | ----------- | --------------------------------------------------------- |
 | `id`               | `uuid`      | Identificador primario (`gen_random_uuid()`).             |
-| `owner_id`         | `uuid`      | Usuario propietario (se usa `0000…` mientras llega Auth). |
+| `owner_id`         | `uuid`      | Usuario propietario (obligatorio, lo aplica `auth.uid()`). |
 | `title`            | `text`      | Título de la receta.                                      |
 | `ingredients`      | `jsonb`     | Lista de ingredientes en texto plano.                     |
 | `steps`            | `jsonb`     | Lista de pasos (ordenados).                               |
@@ -19,7 +19,7 @@ Tabla `recipes` en Postgres (Supabase) para almacenar los resultados del parser.
 | `updated_at`       | `timestamptz` | Fecha de actualización.                                 |
 
 - Migración: `supabase/migrations/0001_create_recipes.sql` (incluye índices y trigger `updated_at`).
-- RLS habilitado (`recipes_owner_select`, `recipes_owner_modify`). El servicio usa `SUPABASE_SERVICE_ROLE_KEY` mientras se habilita Auth.
+- RLS habilitado (`recipes_owner_select`, `recipes_owner_modify`). Todas las operaciones pasan por `createRouteHandlerClient` con la sesión del usuario.
 
 ## Modelo previsto (hoja de ruta)
 

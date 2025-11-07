@@ -11,7 +11,7 @@
 ## Convenciones
 
 - Base URL producción: `https://tastebook.vercel.app`.
-- Autenticación: Supabase Auth con sesión JWT (pendiente de habilitar). Mientras tanto, el API usa `SUPABASE_SERVICE_ROLE_KEY` y fija `owner_id` a un usuario demo.
+- Autenticación: Supabase Auth (enlace mágico u OAuth) con sesiones gestionadas via cookies HttpOnly.
 - Respuestas JSON con `camelCase`.
 
 ## Esquemas
@@ -49,9 +49,11 @@
 }
 ```
 
-Error `503`: Supabase no configurado.
+Errores posibles:
 
-Error `422`: validación de datos fallida.
+- `401`: sesión inexistente o expirada.
+- `422`: validación de datos fallida.
+- `503`: Supabase no configurado (faltan variables de entorno).
 
 ### GET `/api/recipes`
 
@@ -69,6 +71,9 @@ Error `422`: validación de datos fallida.
   ]
 }
 ```
+
+- Error `401`: requiere sesión válida.
+- Error `503`: Supabase no configurado.
 
 ## Ejemplos (borrador)
 

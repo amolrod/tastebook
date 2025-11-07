@@ -12,3 +12,7 @@ playwright/.cache
 public/sw.js
 public/workbox-*.js
 public/worker-*.js
+
+# Environment variable files
+.env
+.env.local

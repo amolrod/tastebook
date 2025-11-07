@@ -15,6 +15,9 @@ async function fetchRecipes(): Promise<RecipeRecord[]> {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Inicia sesión para ver tu recetario.');
+    }
     throw new Error('No se pudieron cargar las recetas');
   }
 

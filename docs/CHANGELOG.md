@@ -10,11 +10,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 - Migración inicial `supabase/migrations/0001_create_recipes.sql` con tabla `recipes` y RLS.
 - Vista `/app` con listado de recetas, tarjetas y botón de pegado.
 - Integración del diálogo **Pegar receta** con guardado remoto y feedback de éxito/error.
+- Flujo de autenticación: `/login` con enlace mágico u OAuth GitHub, `/auth/callback` y acciones de sesión en el encabezado.
 
 ### Cambiado
 
-- README y documentación de despliegue actualizados con pasos de Supabase.
+- README y documentación de despliegue actualizados con pasos de Supabase y login.
 - Parser ajustado para no consumir cantidades, con pruebas reforzadas.
+- Los endpoints API usan `createRouteHandlerClient` con RLS; se elimina la dependencia del service role.
 
 ## [0.3.5] - 2025-11-07
 

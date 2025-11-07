@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { z } from 'zod';
 
 import { parseRecipeFromText } from '@/lib/recipes/parse';
-import { getAdminSupabaseClient } from '@/lib/supabase/admin';
 import type { NewRecipePayload, RecipeRecord } from '@/lib/supabase/types';
 
 const requestSchema = z.object({
@@ -15,12 +16,20 @@ const requestSchema = z.object({
   sourceText: z.string().min(1).optional()
 });
 
-const DEMO_OWNER_ID = '00000000-0000-0000-0000-000000000000';
-
 export async function GET() {
-  const supabase = getAdminSupabaseClient();
-  if (!supabase) {
-    return NextResponse.json({ recipes: [], message: 'Supabase no configurado' }, { status: 200 });
+  const hasSupabaseEnv = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+  if (!hasSupabaseEnv) {
+    return NextResponse.json({ error: 'Supabase no configurado' }, { status: 503 });
+  }
+  const supabase = createRouteHandlerClient({ cookies });
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
   }
 
   const { data, error } = await supabase
@@ -37,9 +46,19 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const supabase = getAdminSupabaseClient();
-  if (!supabase) {
+  const hasSupabaseEnv = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+  if (!hasSupabaseEnv) {
     return NextResponse.json({ error: 'Supabase no configurado' }, { status: 503 });
+  }
+  const supabase = createRouteHandlerClient({ cookies });
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
   }
 
   let body: unknown;
@@ -76,7 +95,7 @@ export async function POST(request: Request) {
       duration_minutes: payload.durationMinutes,
       tags: payload.tags,
       source_text: payload.sourceText,
-      owner_id: DEMO_OWNER_ID
+      owner_id: session.user.id
     })
     .select()
     .single();
@@ -89,10 +108,6 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const supabase = getAdminSupabaseClient();
-  if (!supabase) {
-    return NextResponse.json({ error: 'Supabase no configurado' }, { status: 503 });
-  }
   const FormSchema = z.object({ text: z.string().min(1) });
   const body = await request.json().catch(() => null);
   const result = FormSchema.safeParse(body);

@@ -1,7 +1,8 @@
 "use client";
 
 import { useQueryClient } from '@tanstack/react-query';
-import { type ChangeEvent, useState, useTransition } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { type ChangeEvent, useEffect, useMemo, useState, useTransition } from 'react';
 import { Loader2 } from 'lucide-react';
 import { parseRecipeFromText, type ParsedRecipe } from '@/lib/recipes/parse';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,10 @@ Elaboración:
 
 export function PasteRecipeDialog() {
   const queryClient = useQueryClient();
+  const hasSupabaseEnv = useMemo(() => {
+    return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  }, []);
+  const supabase = useMemo(() => (hasSupabaseEnv ? createClientComponentClient() : null), [hasSupabaseEnv]);
   const [text, setText] = useState('');
   const [isBusy, setIsBusy] = useState(false);
   const [preview, setPreview] = useState<ParsedRecipe | null>(null);
@@ -39,8 +44,36 @@ export function PasteRecipeDialog() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaving, startSavingTransition] = useTransition();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabase) {
+      setUserId(null);
+      return;
+    }
+    let isMounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isMounted) return;
+      setUserId(data.session?.user?.id ?? null);
+    });
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+  setUserId(session?.user?.id ?? null);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   const isDisabled = text.trim().length === 0 || isBusy;
+  const isAuthenticated = Boolean(userId);
+  const canSave = hasSupabaseEnv && isAuthenticated;
 
   const handleParse = () => {
     setIsBusy(true);
@@ -63,6 +96,14 @@ export function PasteRecipeDialog() {
 
   const handleSave = () => {
     if (!preview) return;
+    if (!hasSupabaseEnv) {
+  setSaveError('Configura las variables NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+      return;
+    }
+    if (!isAuthenticated) {
+      setSaveError('Inicia sesión para guardar recetas en Tastebook.');
+      return;
+    }
     startSavingTransition(async () => {
       setSaveError(null);
       setSaveSuccess(false);
@@ -177,6 +218,16 @@ export function PasteRecipeDialog() {
                     </span>
                   ))}
                 </div>
+                {!hasSupabaseEnv && (
+                  <p className="rounded-xl bg-red-100 px-3 py-2 text-xs font-medium text-red-700">
+                    Configura las variables NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY para habilitar el guardado.
+                  </p>
+                )}
+                {hasSupabaseEnv && !isAuthenticated && (
+                  <p className="rounded-xl bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900">
+                    Debes iniciar sesión para guardar tu receta. Usa el botón Entrar en la parte superior.
+                  </p>
+                )}
                 <div>
                   <h4 className="font-semibold text-neutral-900">Ingredientes</h4>
                   <ul className="mt-1 list-disc space-y-1 pl-6">
@@ -202,7 +253,7 @@ export function PasteRecipeDialog() {
                       Receta guardada. Revisa tu recetario en la pestaña &ldquo;Entrar&rdquo;.
                     </p>
                   )}
-                  <Button type="button" size="sm" onClick={handleSave} disabled={isSaving}>
+                  <Button type="button" size="sm" onClick={handleSave} disabled={isSaving || !canSave}>
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : 'Guardar en Tastebook'}
                   </Button>
                 </div>

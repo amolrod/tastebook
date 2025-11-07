@@ -16,18 +16,17 @@ pnpm run dev
 
 Crea un archivo `.env.local` a partir de `.env.example` con las claves de Supabase y banderas de características.
 
-## Scripts clave
-
-
 > **Supabase**: Ejecuta la migración inicial `supabase/migrations/0001_create_recipes.sql` en tu proyecto (puedes usar `supabase db push` o la consola SQL) antes de guardar recetas.
+
+## Scripts clave
 - `pnpm dev`: arranca la aplicación en modo desarrollo.
 - `pnpm build`: genera la build optimizada para Vercel.
 - `pnpm test`: ejecuta la suite de Vitest.
 - `pnpm test:e2e`: ejecuta Playwright (requiere `pnpm exec playwright install`).
-
-Tras la vista previa, pulsa **Guardar en Tastebook** para enviar la receta a Supabase (se usa una cuenta &ldquo;demo&rdquo; hasta incorporar Auth). El listado se refresca automáticamente en `/app`.
 - `pnpm lint`: ejecuta ESLint y reglas de estilo.
 - `pnpm typecheck`: verifica los tipos con TypeScript estricto.
+
+Tras la vista previa, pulsa **Guardar en Tastebook** para enviar la receta a Supabase (requiere sesión iniciada). El listado se refresca automáticamente en `/app`.
 
 ## Pegar recetas desde texto
 
@@ -49,7 +48,13 @@ Consulta `docs/EXTRACCION.md` para conocer el algoritmo y sus limitaciones.
 - Lista tus recetas guardadas (ordenadas por fecha descendente).
 - Muestra duración, porciones y tags.
 - Usa React Query para refrescar tras cada guardado.
-- Próximo paso: proteger con Supabase Auth y vista de detalle/edición.
+- Protegeremos esta ruta con Supabase Auth conforme avancemos (ya admite sesión para guardar/listar).
+
+## Autenticación
+
+- `/login` ofrece enlace mágico por correo o acceso con GitHub (ambos gratuitos en Supabase).
+- `/auth/callback` intercambia el código por una sesión y redirige a `/app`.
+- El encabezado muestra el estado de sesión: botón **Entrar** o menú con **Tu recetario** + **Cerrar sesión**.
 
 
 Toda la documentación de arquitectura, API, seguridad, despliegue y pruebas está en `docs/`.

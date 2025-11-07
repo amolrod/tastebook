@@ -14,7 +14,7 @@ graph TD
 - **Next.js 14 (App Router)** con React 18 y TypeScript estricto.
 - **TanStack Query** para caché de datos en cliente.
 - **Tailwind + shadcn/ui** para UI consistente accesible.
-- **Supabase** aporta autenticación y Postgres con RLS. De momento consumimos la tabla `recipes` vía service role hasta integrar Auth; Drizzle quedará alineado con Supabase en próximos hitos.
+- **Supabase** aporta autenticación y Postgres con RLS. El backend usa `createRouteHandlerClient`/`createServerComponentClient` para operar bajo la sesión del usuario; Drizzle quedará alineado con Supabase en próximos hitos.
 - **next-pwa** genera el service worker y manifiesto para instalación en iOS.
 
 ## Flujo de «Pegar receta»
