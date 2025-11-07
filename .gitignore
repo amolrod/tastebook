@@ -1,0 +1,14 @@
+node_modules
+.pnp.cjs
+.pnp.loader.mjs
+.next
+out
+.vscode
+*.log
+pnpm-lock.yaml
+coverage
+playwright-report
+playwright/.cache
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
