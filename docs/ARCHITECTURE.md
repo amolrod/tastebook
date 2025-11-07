@@ -14,7 +14,7 @@ graph TD
 - **Next.js 14 (App Router)** con React 18 y TypeScript estricto.
 - **TanStack Query** para caché de datos en cliente.
 - **Tailwind + shadcn/ui** para UI consistente accesible.
-- **Supabase** aporta autenticación y Postgres con RLS; Drizzle se usa para migraciones (pendiente de conexión en hitos posteriores).
+- **Supabase** aporta autenticación y Postgres con RLS. De momento consumimos la tabla `recipes` vía service role hasta integrar Auth; Drizzle quedará alineado con Supabase en próximos hitos.
 - **next-pwa** genera el service worker y manifiesto para instalación en iOS.
 
 ## Flujo de «Pegar receta»
@@ -22,7 +22,8 @@ graph TD
 1. El usuario abre el diálogo `PasteRecipeDialog`.
 2. El texto pegado se procesa localmente con `parseRecipeFromText`.
 3. Se muestra vista previa con título, ingredientes, pasos, porciones, duración y tags heurísticos.
-4. (Futuro) Persistencia en Supabase a través de API protegida.
+4. El usuario pulsa «Guardar en Tastebook» y se invoca `/api/recipes` (POST) que inserta la receta en Supabase.
+5. React Query invalida la caché `recipes` para refrescar el listado en `/app`.
 
 ## Decisiones clave
 

@@ -1,8 +1,27 @@
 # Esquema de base de datos
 
-> Este hito no introduce cambios en la base de datos. Se mantiene el modelo planificado para M2.
+## Estado actual (M4)
 
-## Modelo previsto
+Tabla `recipes` en Postgres (Supabase) para almacenar los resultados del parser.
+
+| Columna            | Tipo        | Descripción                                               |
+| ------------------ | ----------- | --------------------------------------------------------- |
+| `id`               | `uuid`      | Identificador primario (`gen_random_uuid()`).             |
+| `owner_id`         | `uuid`      | Usuario propietario (se usa `0000…` mientras llega Auth). |
+| `title`            | `text`      | Título de la receta.                                      |
+| `ingredients`      | `jsonb`     | Lista de ingredientes en texto plano.                     |
+| `steps`            | `jsonb`     | Lista de pasos (ordenados).                               |
+| `servings`         | `smallint`  | Número de porciones (opcional).                           |
+| `duration_minutes` | `smallint`  | Duración total estimada/minutos.                          |
+| `tags`             | `text[]`    | Tags heurísticos (`horno`, `postre`, `rápida`).           |
+| `source_text`      | `text`      | Texto original pegado (opcional).                         |
+| `created_at`       | `timestamptz` | Fecha de creación.                                      |
+| `updated_at`       | `timestamptz` | Fecha de actualización.                                 |
+
+- Migración: `supabase/migrations/0001_create_recipes.sql` (incluye índices y trigger `updated_at`).
+- RLS habilitado (`recipes_owner_select`, `recipes_owner_modify`). El servicio usa `SUPABASE_SERVICE_ROLE_KEY` mientras se habilita Auth.
+
+## Modelo previsto (hoja de ruta)
 
 ```mermaid
 ergdiagram

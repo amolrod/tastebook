@@ -17,7 +17,9 @@
 
 - Plan gratuito (Free Tier).
 - Provisionar proyecto y copiar URL + anon key.
-- Configurar base de datos Postgres y RLS en M2.
+- Ejecutar la migración `supabase/migrations/0001_create_recipes.sql` (CLI `supabase db push` o consola SQL).
+- Definir las variables de entorno privadas en Vercel (`SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_PASSWORD`).
+- RLS activo: mientras no haya Auth, el API usa el service role y fija `owner_id` a un identificador demo.
 
 ## GitHub Actions (CI/CD)
 

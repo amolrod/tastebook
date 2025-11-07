@@ -1,22 +1,74 @@
 # API Tastebook
 
-> **Estado:** pendiente de hitos M3-M7. No se exponen endpoints HTTP nuevos en M3.5/M4.
+## Endpoints activos (M4)
+
+| Endpoint | Método | Descripción |
+| --- | --- | --- |
+| `/api/recipes` | `GET` | Devuelve las últimas 50 recetas guardadas en Supabase. |
+| `/api/recipes` | `POST` | Inserta una receta generada por el parser. |
+| `/api/recipes` | `PUT` | Devuelve el JSON del parser dado un texto (uso interno/debug). |
 
 ## Convenciones
 
 - Base URL producción: `https://tastebook.vercel.app`.
-- Autenticación: Supabase Auth con sesión JWT (pendiente de habilitar).
+- Autenticación: Supabase Auth con sesión JWT (pendiente de habilitar). Mientras tanto, el API usa `SUPABASE_SERVICE_ROLE_KEY` y fija `owner_id` a un usuario demo.
 - Respuestas JSON con `camelCase`.
 
-## Próximos endpoints
+## Esquemas
 
-| Endpoint | Método | Descripción | Estado |
-| --- | --- | --- | --- |
-| `/api/recipes` | `GET` | Listado paginado con filtros y búsqueda FTS | M3 |
-| `/api/recipes` | `POST` | Crear receta validada con Zod | M3 |
-| `/api/recipes/[id]` | `PATCH` | Actualizar receta existente | M3 |
-| `/api/recipes/[id]` | `DELETE` | Eliminar receta | M3 |
-| `/api/extract-recipe` | `POST` | (Opcional) Extracción con IA controlada por `FEATURE_AI_EXTRACT` | ADR pendiente |
+### POST `/api/recipes`
+
+- Request body (Zod `requestSchema`):
+
+```ts
+{
+  title: string;
+  ingredients: string[]; // min 1
+  steps: string[];       // min 1
+  servings?: number | null; // 1-20
+  durationMinutes: number;  // 1-600
+  tags: string[];           // max 10
+  sourceText?: string;
+}
+```
+
+- Response `201`:
+
+```json
+{
+  "recipe": {
+    "id": "uuid",
+    "title": "Bizcocho",
+    "ingredients": ["200 g harina"],
+    "steps": ["Mezclar"],
+    "duration_minutes": 35,
+    "tags": ["postre"],
+    "created_at": "2025-11-08T10:00:00Z",
+    "updated_at": "2025-11-08T10:00:00Z"
+  }
+}
+```
+
+Error `503`: Supabase no configurado.
+
+Error `422`: validación de datos fallida.
+
+### GET `/api/recipes`
+
+- Response `200`:
+
+```json
+{
+  "recipes": [
+    {
+      "id": "uuid",
+      "title": "Bizcocho",
+      "tags": ["postre"],
+      "duration_minutes": 35
+    }
+  ]
+}
+```
 
 ## Ejemplos (borrador)
 

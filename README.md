@@ -18,10 +18,14 @@ Crea un archivo `.env.local` a partir de `.env.example` con las claves de Supaba
 
 ## Scripts clave
 
+
+> **Supabase**: Ejecuta la migración inicial `supabase/migrations/0001_create_recipes.sql` en tu proyecto (puedes usar `supabase db push` o la consola SQL) antes de guardar recetas.
 - `pnpm dev`: arranca la aplicación en modo desarrollo.
 - `pnpm build`: genera la build optimizada para Vercel.
 - `pnpm test`: ejecuta la suite de Vitest.
 - `pnpm test:e2e`: ejecuta Playwright (requiere `pnpm exec playwright install`).
+
+Tras la vista previa, pulsa **Guardar en Tastebook** para enviar la receta a Supabase (se usa una cuenta &ldquo;demo&rdquo; hasta incorporar Auth). El listado se refresca automáticamente en `/app`.
 - `pnpm lint`: ejecuta ESLint y reglas de estilo.
 - `pnpm typecheck`: verifica los tipos con TypeScript estricto.
 
@@ -39,5 +43,13 @@ Consulta `docs/EXTRACCION.md` para conocer el algoritmo y sus limitaciones.
 - `next-pwa` configura el service worker para cachear recursos estáticos y documentos.
 
 ## Documentación adicional
+
+## Recetario (`/app`)
+
+- Lista tus recetas guardadas (ordenadas por fecha descendente).
+- Muestra duración, porciones y tags.
+- Usa React Query para refrescar tras cada guardado.
+- Próximo paso: proteger con Supabase Auth y vista de detalle/edición.
+
 
 Toda la documentación de arquitectura, API, seguridad, despliegue y pruebas está en `docs/`.
