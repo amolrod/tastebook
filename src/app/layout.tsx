@@ -15,7 +15,6 @@ export const metadata: Metadata = {
   description:
     'Recetario colaborativo con PWA instalable y extracción inteligente al pegar recetas de texto.',
   manifest: '/manifest.json',
-  themeColor: '#f97316',
   applicationName: 'Tastebook',
   appleWebApp: {
     capable: true,
@@ -39,7 +38,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  viewportFit: 'cover'
+  viewportFit: 'cover',
+  themeColor: '#f97316'
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

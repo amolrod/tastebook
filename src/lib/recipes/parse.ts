@@ -16,6 +16,12 @@ const INGREDIENT_UNIT_PATTERN =
 
 const STEP_NUMBER_PATTERN = /^\s*(\d+|\d+\.|[-•*])\s+/;
 
+const SERVINGS_LINE_PATTERN =
+  /\b(?:para|rinde|salen)\s+\d{1,2}\s+(?:porciones?|personas|raciones?)\b/i;
+
+const DURATION_LINE_PATTERN =
+  /\b(?:list[oa]\s+en|tiempo\s+(?:total|de\s+preparaci[oó]n))[^\n]*\b\d{1,2}\s*(?:h|hora(?:s)?|min|minutos?)\b/i;
+
 export interface ParsedRecipe {
   title: string;
   ingredients: string[];
@@ -42,10 +48,10 @@ export function parseRecipeFromText(input: string): ParsedRecipe {
 
   const title = extractTitle(nonEmptyLines);
   const servings = extractServings(text);
-  const durationMinutes = extractDuration(text);
+  const explicitDuration = extractDuration(text);
   const { ingredients, steps } = extractSections(lines);
-  const inferredDuration = durationMinutes ?? estimateDuration(steps.length);
-  const finalDuration = clamp(inferredDuration, 10, 90);
+  const fallbackDuration = estimateDuration(steps.length);
+  const finalDuration = explicitDuration ?? clamp(fallbackDuration, 10, 90);
   const tags = inferTags(text, finalDuration);
 
   return {
@@ -91,12 +97,23 @@ function extractSections(lines: string[]): { ingredients: string[]; steps: strin
       }
       continue;
     }
-    if (collectingIngredients && isLikelyIngredient(line)) {
-      inferredIngredients.push(cleanBullet(line));
-      continue;
+    if (collectingIngredients) {
+      if (isLikelyIngredient(line)) {
+        inferredIngredients.push(cleanBullet(line));
+        continue;
+      }
+
+      if (inferredIngredients.length === 0) {
+        // likely title or intro before ingredient list; skip without switching state
+        continue;
+      }
+
+      collectingIngredients = false;
     }
-    collectingIngredients = false;
-    inferredSteps.push(line);
+
+    if (!collectingIngredients) {
+      inferredSteps.push(line);
+    }
   }
 
   const fallbackSplitIndex = Math.max(1, Math.floor(lines.length / 2));
@@ -153,6 +170,10 @@ function collectSteps(lines: string[]): string[] {
       flushBuffer();
       continue;
     }
+    if (SERVINGS_LINE_PATTERN.test(line) || DURATION_LINE_PATTERN.test(line)) {
+      flushBuffer();
+      continue;
+    }
     if (STEP_NUMBER_PATTERN.test(line) && buffer.length > 0) {
       flushBuffer();
     }
@@ -187,7 +208,11 @@ function isLikelyIngredient(line: string): boolean {
 }
 
 function cleanBullet(line: string): string {
-  return line.replace(/^[-•*]\s*/, '').replace(/^\d+[.)]?\s*/, '').trim();
+  const withoutBullet = line.replace(/^[-•*]\s*/, '');
+  if (/^\d+(?:[.)]|º)\s+/.test(withoutBullet)) {
+    return withoutBullet.replace(/^\d+(?:[.)]|º)\s+/, '').trim();
+  }
+  return withoutBullet.trim();
 }
 
 function extractServings(text: string): number | null {
@@ -197,7 +222,7 @@ function extractServings(text: string): number | null {
 }
 
 function extractDuration(text: string): number | null {
-  const hoursMatch = text.match(/(\d{1,2})\s*(?:h|hora(?:s)?)/i);
+  const hoursMatch = text.match(/(\d{1,2})\s*(?:h\b|hora(?:s)?)/i);
   const minutesMatches = text.matchAll(/(\d{1,2})\s*(?:min|minutos?)/gi);
 
   let totalMinutes = 0;

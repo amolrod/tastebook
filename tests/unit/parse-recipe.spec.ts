@@ -9,6 +9,7 @@ describe('parseRecipeFromText', () => {
 
     expect(parsed.title).toBe('Tarta de queso clásica');
     expect(parsed.ingredients).toHaveLength(2);
+    expect(parsed.ingredients[0]).toBe('200 g de galletas');
     expect(parsed.steps).toHaveLength(2);
     expect(parsed.servings).toBe(8);
     expect(parsed.durationMinutes).toBe(30);
