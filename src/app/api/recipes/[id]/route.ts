@@ -133,3 +133,56 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   return NextResponse.json({ recipe: updatedRecipe as RecipeRecord }, { status: 200 });
 }
+
+export async function DELETE(request: Request, context: RouteContext) {
+  // 1. Validar configuración de Supabase
+  if (!hasSupabaseConfig()) {
+    return NextResponse.json({ error: 'Supabase no configurado' }, { status: 503 });
+  }
+
+  // 2. Verificar autenticación
+  const supabase = createRouteHandlerClient({ cookies });
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+  }
+
+  // 3. Validar ID de receta
+  const { id } = context.params;
+  if (!id || typeof id !== 'string') {
+    return NextResponse.json({ error: 'ID de receta inválido' }, { status: 400 });
+  }
+
+  // 4. Verificar que la receta existe y pertenece al usuario
+  const { data: existingRecipe, error: fetchError } = await supabase
+    .from('recipes')
+    .select('id, owner_id')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return NextResponse.json({ error: 'Error al verificar receta' }, { status: 500 });
+  }
+
+  if (!existingRecipe) {
+    return NextResponse.json({ error: 'Receta no encontrada' }, { status: 404 });
+  }
+
+  if (existingRecipe.owner_id !== session.user.id) {
+    return NextResponse.json({ error: 'No tienes permiso para eliminar esta receta' }, { status: 403 });
+  }
+
+  // 5. Eliminar receta
+  const { error: deleteError } = await supabase.from('recipes').delete().eq('id', id);
+
+  if (deleteError) {
+    console.error('Error deleting recipe:', deleteError);
+    return NextResponse.json({ error: 'Error al eliminar receta' }, { status: 500 });
+  }
+
+  // 204 No Content - eliminación exitosa
+  return new NextResponse(null, { status: 204 });
+}

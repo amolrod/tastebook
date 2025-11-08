@@ -2,6 +2,7 @@
 
 import { Clock, FileText, Tags, Users } from 'lucide-react';
 import { RecipeEditForm } from '@/components/recipe/recipe-edit-form';
+import { DeleteRecipeButton } from '@/components/recipe/delete-recipe-button';
 import type { RecipeRecord } from '@/lib/supabase/types';
 
 interface RecipeContentProps {
@@ -43,12 +44,15 @@ export function RecipeContent({ recipe }: RecipeContentProps) {
           ))}
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-neutral-900">{recipe.title}</h1>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-neutral-500">
             Guardada el {createdAt}
             {recipe.updated_at !== recipe.created_at ? ` · Actualizada el ${updatedAt}` : ''}
           </p>
-          <RecipeEditForm recipe={recipe} />
+          <div className="flex gap-2">
+            <RecipeEditForm recipe={recipe} />
+            <DeleteRecipeButton recipe={recipe} />
+          </div>
         </div>
       </header>
 

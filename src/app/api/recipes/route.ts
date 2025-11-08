@@ -16,7 +16,7 @@ const requestSchema = z.object({
   sourceText: z.string().min(1).optional()
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   const hasSupabaseEnv = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
@@ -32,11 +32,48 @@ export async function GET() {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  // Parsear query params
+  const { searchParams } = new URL(request.url);
+  const search = searchParams.get('q');
+  const maxDuration = searchParams.get('maxDuration');
+  const minServings = searchParams.get('minServings');
+  const tagsParam = searchParams.get('tags');
+
+  // Construir query base
+  let query = supabase
     .from('recipes')
     .select('*')
+    .eq('owner_id', session.user.id)
     .order('created_at', { ascending: false })
     .limit(50);
+
+  // Aplicar filtros
+  if (search) {
+    query = query.ilike('title', `%${search}%`);
+  }
+
+  if (maxDuration) {
+    const maxDurationNum = parseInt(maxDuration, 10);
+    if (!isNaN(maxDurationNum)) {
+      query = query.lte('duration_minutes', maxDurationNum);
+    }
+  }
+
+  if (minServings) {
+    const minServingsNum = parseInt(minServings, 10);
+    if (!isNaN(minServingsNum)) {
+      query = query.gte('servings', minServingsNum);
+    }
+  }
+
+  if (tagsParam) {
+    const tags = tagsParam.split(',').filter(Boolean);
+    if (tags.length > 0) {
+      query = query.overlaps('tags', tags);
+    }
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

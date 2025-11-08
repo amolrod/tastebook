@@ -5,8 +5,32 @@ import Link from 'next/link';
 
 import type { RecipeRecord } from '@/lib/supabase/types';
 
-async function fetchRecipes(): Promise<RecipeRecord[]> {
-  const response = await fetch('/api/recipes', {
+export interface RecipeFilters {
+  search?: string;
+  maxDuration?: number;
+  minServings?: number;
+  tags?: string[];
+}
+
+async function fetchRecipes(filters?: RecipeFilters): Promise<RecipeRecord[]> {
+  const params = new URLSearchParams();
+
+  if (filters?.search) {
+    params.append('q', filters.search);
+  }
+  if (filters?.maxDuration) {
+    params.append('maxDuration', filters.maxDuration.toString());
+  }
+  if (filters?.minServings) {
+    params.append('minServings', filters.minServings.toString());
+  }
+  if (filters?.tags && filters.tags.length > 0) {
+    params.append('tags', filters.tags.join(','));
+  }
+
+  const url = `/api/recipes${params.toString() ? `?${params.toString()}` : ''}`;
+
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
@@ -29,10 +53,14 @@ function getRecipeHref(id: string): `/app/${string}` {
   return `/app/${id}`;
 }
 
-export function RecipeList() {
+interface RecipeListProps {
+  filters?: RecipeFilters;
+}
+
+export function RecipeList({ filters }: RecipeListProps) {
   const { data, error, isLoading } = useQuery({
-    queryKey: ['recipes'],
-    queryFn: fetchRecipes,
+    queryKey: ['recipes', filters],
+    queryFn: () => fetchRecipes(filters),
     refetchOnWindowFocus: false
   });
 
