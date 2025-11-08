@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { type ChangeEvent, useEffect, useMemo, useState, useTransition } from 'react';
+import { type ChangeEvent, useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { Loader2 } from 'lucide-react';
 import { parseRecipeFromText, type ParsedRecipe } from '@/lib/recipes/parse';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,6 @@ export function PasteRecipeDialog() {
   const [preview, setPreview] = useState<ParsedRecipe | null>(null);
   const [open, setOpen] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaving, startSavingTransition] = useTransition();
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -62,7 +61,7 @@ export function PasteRecipeDialog() {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!isMounted) return;
-  setUserId(session?.user?.id ?? null);
+      setUserId(session?.user?.id ?? null);
     });
 
     return () => {
@@ -75,13 +74,19 @@ export function PasteRecipeDialog() {
   const isAuthenticated = Boolean(userId);
   const canSave = hasSupabaseEnv && isAuthenticated;
 
+  const resetDialog = useCallback(() => {
+    setText('');
+    setPreview(null);
+    setSaveError(null);
+    setIsBusy(false);
+  }, []);
+
   const handleParse = () => {
     setIsBusy(true);
     try {
       const parsed = parseRecipeFromText(text);
       setPreview(parsed);
       setSaveError(null);
-      setSaveSuccess(false);
     } finally {
       setIsBusy(false);
     }
@@ -91,13 +96,12 @@ export function PasteRecipeDialog() {
     setText(SAMPLE_RECIPE);
     setPreview(parseRecipeFromText(SAMPLE_RECIPE));
     setSaveError(null);
-    setSaveSuccess(false);
   };
 
   const handleSave = () => {
     if (!preview) return;
     if (!hasSupabaseEnv) {
-  setSaveError('Configura las variables NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+      setSaveError('Configura las variables NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY.');
       return;
     }
     if (!isAuthenticated) {
@@ -106,7 +110,6 @@ export function PasteRecipeDialog() {
     }
     startSavingTransition(async () => {
       setSaveError(null);
-      setSaveSuccess(false);
       try {
         const response = await fetch('/api/recipes', {
           method: 'POST',
@@ -130,7 +133,8 @@ export function PasteRecipeDialog() {
         }
 
         await queryClient.invalidateQueries({ queryKey: ['recipes'] });
-        setSaveSuccess(true);
+        resetDialog();
+        setOpen(false);
       } catch (error) {
         if (error instanceof Error) {
           setSaveError(error.message);
@@ -147,10 +151,7 @@ export function PasteRecipeDialog() {
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen);
         if (!nextOpen) {
-          setText('');
-          setPreview(null);
-          setSaveError(null);
-          setSaveSuccess(false);
+          resetDialog();
         }
       }}
     >
@@ -177,7 +178,6 @@ export function PasteRecipeDialog() {
             onChange={(event: ChangeEvent<HTMLTextAreaElement>) => {
               setText(event.target.value);
               setSaveError(null);
-              setSaveSuccess(false);
             }}
             placeholder="Pega aquí la receta completa..."
             aria-describedby="paste-helper"
@@ -248,11 +248,6 @@ export function PasteRecipeDialog() {
                 </div>
                 <div className="flex flex-col gap-2 border-t border-dashed border-neutral-200 pt-4">
                   {saveError && <p className="text-sm text-red-600">{saveError}</p>}
-                  {saveSuccess && (
-                    <p className="text-sm text-green-700">
-                      Receta guardada. Revisa tu recetario en la pestaña &ldquo;Entrar&rdquo;.
-                    </p>
-                  )}
                   <Button type="button" size="sm" onClick={handleSave} disabled={isSaving || !canSave}>
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : 'Guardar en Tastebook'}
                   </Button>

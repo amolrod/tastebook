@@ -16,6 +16,8 @@ const INGREDIENT_UNIT_PATTERN =
 
 const STEP_NUMBER_PATTERN = /^\s*(\d+|\d+\.|[-•*])\s+/;
 
+const INGREDIENT_GROUP_PATTERN = /^[a-záéíóúüñ]+(?:[\s-][a-záéíóúüñ]+){0,4}$/i;
+
 const SERVINGS_LINE_PATTERN =
   /\b(?:para|rinde|salen)\s+\d{1,2}\s+(?:porciones?|personas|raciones?)\b/i;
 
@@ -127,17 +129,29 @@ function extractSections(lines: string[]): { ingredients: string[]; steps: strin
 
 function collectList(lines: string[]): string[] {
   const items: string[] = [];
+  let blankStreak = 0;
   for (const line of lines) {
     if (!line) {
-      if (items.length > 0) {
+      blankStreak += 1;
+      if (items.length === 0) {
+        continue;
+      }
+      if (blankStreak > 1) {
         break;
       }
       continue;
     }
-    if (STEP_HEADINGS.some((matcher) => matcher.test(normalizeHeading(line)))) {
+    blankStreak = 0;
+
+    const normalized = normalizeHeading(line);
+    if (STEP_HEADINGS.some((matcher) => matcher.test(normalized))) {
       break;
     }
-    if (INGREDIENT_HEADINGS.some((matcher) => matcher.test(normalizeHeading(line)))) {
+    if (INGREDIENT_HEADINGS.some((matcher) => matcher.test(normalized))) {
+      continue;
+    }
+    if (isIngredientGroupHeading(line)) {
+      items.push(cleanBullet(line));
       continue;
     }
     if (!isLikelyIngredient(line)) {
@@ -161,12 +175,41 @@ function collectSteps(lines: string[]): string[] {
     buffer = [];
   };
 
-  for (const line of lines) {
+  const findNextNonEmpty = (start: number): string | null => {
+    for (let index = start; index < lines.length; index += 1) {
+      const candidate = lines[index];
+      if (candidate) {
+        return candidate;
+      }
+    }
+    return null;
+  };
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
     if (!line) {
-      flushBuffer();
+      const nextNonEmpty = findNextNonEmpty(index + 1);
+      if (!nextNonEmpty) {
+        flushBuffer();
+        break;
+      }
+      const normalizedNext = normalizeHeading(nextNonEmpty);
+      if (
+        STEP_HEADINGS.some((matcher) => matcher.test(normalizedNext)) ||
+        isStepSubheading(nextNonEmpty) ||
+        STEP_NUMBER_PATTERN.test(nextNonEmpty)
+      ) {
+        flushBuffer();
+        continue;
+      }
+      if (buffer.length > 0) {
+        buffer.push('');
+      }
       continue;
     }
-    if (STEP_HEADINGS.some((matcher) => matcher.test(normalizeHeading(line)))) {
+
+    const normalized = normalizeHeading(line);
+    if (STEP_HEADINGS.some((matcher) => matcher.test(normalized))) {
       flushBuffer();
       continue;
     }
@@ -176,6 +219,13 @@ function collectSteps(lines: string[]): string[] {
     }
     if (STEP_NUMBER_PATTERN.test(line) && buffer.length > 0) {
       flushBuffer();
+    }
+    if (isStepSubheading(line)) {
+      if (buffer.length > 0) {
+        flushBuffer();
+      }
+      buffer.push(cleanBullet(line));
+      continue;
     }
     buffer.push(cleanBullet(line));
   }
@@ -189,12 +239,16 @@ function findHeadingIndex(lines: string[], patterns: RegExp[]): number {
 }
 
 function normalizeHeading(value: string): string {
-  return value.replace(/[:：]/g, '').trim().toLowerCase();
+  return value
+    .replace(/^[^A-Za-zÁÉÍÓÚÜáéíóúüÑñ0-9]+/, '')
+    .replace(/[:：]/g, '')
+    .trim()
+    .toLowerCase();
 }
 
 function isLikelyIngredient(line: string): boolean {
-  const normalized = line.toLowerCase();
-  if (STEP_HEADINGS.some((matcher) => matcher.test(normalized))) {
+  const normalizedHeading = normalizeHeading(line);
+  if (STEP_HEADINGS.some((matcher) => matcher.test(normalizedHeading))) {
     return false;
   }
   return (
@@ -205,6 +259,44 @@ function isLikelyIngredient(line: string): boolean {
     /(al gusto|c\/n)/i.test(line) ||
     /(cucharad[ao]|pizca|rodajas?|rebanadas?|fileteada)/i.test(line)
   );
+}
+
+function isIngredientGroupHeading(line: string): boolean {
+  const normalizedHeading = normalizeHeading(line);
+  if (!normalizedHeading) {
+    return false;
+  }
+  if (STEP_HEADINGS.some((matcher) => matcher.test(normalizedHeading))) {
+    return false;
+  }
+  if (INGREDIENT_HEADINGS.some((matcher) => matcher.test(normalizedHeading))) {
+    return false;
+  }
+  if (/\d/.test(normalizedHeading)) {
+    return false;
+  }
+  return INGREDIENT_GROUP_PATTERN.test(normalizedHeading);
+}
+
+function isStepSubheading(line: string): boolean {
+  const normalizedHeading = normalizeHeading(line);
+  if (!normalizedHeading) {
+    return false;
+  }
+  if (STEP_HEADINGS.some((matcher) => matcher.test(normalizedHeading))) {
+    return false;
+  }
+  if (INGREDIENT_HEADINGS.some((matcher) => matcher.test(normalizedHeading))) {
+    return false;
+  }
+  const firstLetterMatch = line.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/);
+  if (!firstLetterMatch || firstLetterMatch[0] !== firstLetterMatch[0].toUpperCase()) {
+    return false;
+  }
+  if (/\d/.test(normalizedHeading)) {
+    return false;
+  }
+  return INGREDIENT_GROUP_PATTERN.test(normalizedHeading);
 }
 
 function cleanBullet(line: string): string {

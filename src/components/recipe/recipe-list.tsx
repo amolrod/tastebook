@@ -25,6 +25,10 @@ async function fetchRecipes(): Promise<RecipeRecord[]> {
   return payload.recipes ?? [];
 }
 
+function getRecipeHref(id: string): `/app/${string}` {
+  return `/app/${id}`;
+}
+
 export function RecipeList() {
   const { data, error, isLoading } = useQuery({
     queryKey: ['recipes'],
@@ -61,35 +65,47 @@ export function RecipeList() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {data.map((recipe) => (
-        <article key={recipe.id} className="flex flex-col rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-          <header className="flex items-center justify-between gap-2">
-            <h3 className="text-lg font-semibold text-neutral-900">{recipe.title}</h3>
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-              {recipe.duration_minutes} min
-            </span>
-          </header>
-          <p className="mt-3 text-sm text-neutral-600">
-            {recipe.ingredients.slice(0, 3).join(', ')}
-            {recipe.ingredients.length > 3 ? '…' : ''}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {recipe.tags.map((tag) => (
-              <span key={tag} className="rounded-full bg-neutral-100 px-3 py-1 text-xs uppercase tracking-wide text-neutral-500">
-                {tag}
-              </span>
-            ))}
-            {recipe.servings && (
-              <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs uppercase tracking-wide text-neutral-500">
-                {recipe.servings} porciones
-              </span>
-            )}
-          </div>
-          <footer className="mt-auto text-xs text-neutral-400">
-            Guardada el {new Date(recipe.created_at).toLocaleDateString('es-ES')}
-          </footer>
-        </article>
-      ))}
+      {data.map((recipe) => {
+        const preview = recipe.ingredients.slice(0, 3).join(', ');
+        return (
+          <Link
+            key={recipe.id}
+            href={getRecipeHref(recipe.id)}
+            className="group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            aria-label={`Ver receta ${recipe.title}`}
+          >
+            <article className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+              <header className="flex items-center justify-between gap-2">
+                <h3 className="text-lg font-semibold text-neutral-900 transition-colors group-hover:text-brand">
+                  {recipe.title}
+                </h3>
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                  {recipe.duration_minutes} min
+                </span>
+              </header>
+              <p className="mt-3 text-sm text-neutral-600">
+                {preview}
+                {recipe.ingredients.length > 3 ? '…' : ''}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {recipe.tags.map((tag) => (
+                  <span key={tag} className="rounded-full bg-neutral-100 px-3 py-1 text-xs uppercase tracking-wide text-neutral-500">
+                    {tag}
+                  </span>
+                ))}
+                {recipe.servings && (
+                  <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs uppercase tracking-wide text-neutral-500">
+                    {recipe.servings} porciones
+                  </span>
+                )}
+              </div>
+              <footer className="mt-auto text-xs text-neutral-400">
+                Guardada el {new Date(recipe.created_at).toLocaleDateString('es-ES')}
+              </footer>
+            </article>
+          </Link>
+        );
+      })}
     </div>
   );
 }

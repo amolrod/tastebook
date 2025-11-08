@@ -57,6 +57,49 @@ describe('parseRecipeFromText', () => {
 
     expect(parsed.tags).toContain('rápida');
   });
+
+  it('parses recipes with emoji headings and grouped sections', () => {
+    const input = `🍜 Udon de secreto ibérico al curry rojo
+
+🧂 Ingredientes
+Base
+
+300 g secreto ibérico, cortado en tiras finas
+150 g udon noodles
+
+Salsa
+1½ cucharadas pasta de curry rojo tailandés
+200 ml de caldo
+
+🔥 Preparación paso a paso
+
+Cocer los udon
+
+Pon agua con una pizca de sal a hervir.
+Cuece los udon según el envase.
+Reserva.
+
+Cocinar el secreto
+Calienta aceite y dora el secreto ibérico.
+
+Unir todo
+Incorpora los udon y mezcla.
+
+✅ Resultado
+Listo para servir.`;
+
+    const parsed = parseRecipeFromText(input);
+
+    expect(parsed.title).toBe('🍜 Udon de secreto ibérico al curry rojo');
+    expect(parsed.ingredients).toContain('Base');
+    expect(parsed.ingredients).toContain('300 g secreto ibérico, cortado en tiras finas');
+    expect(parsed.ingredients).toContain('Salsa');
+    expect(parsed.ingredients).toContain('1½ cucharadas pasta de curry rojo tailandés');
+    expect(parsed.steps[0]).toContain('Cocer los udon');
+    expect(parsed.steps[0]).toContain('Pon agua con una pizca de sal a hervir.');
+    expect(parsed.steps[1]).toContain('Cocinar el secreto');
+    expect(parsed.steps[2]).toContain('Unir todo');
+  });
 });
 
 describe('helpers', () => {
