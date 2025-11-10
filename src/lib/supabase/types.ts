@@ -8,6 +8,7 @@ export interface RecipeRecord {
   duration_minutes: number;
   tags: string[];
   source_text: string | null;
+  is_favorite: boolean;
   created_at: string;
   updated_at: string;
 }

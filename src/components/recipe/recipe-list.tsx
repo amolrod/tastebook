@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 
+import { FavoriteButton } from '@/components/recipe/favorite-button';
 import type { RecipeRecord } from '@/lib/supabase/types';
 
 export interface RecipeFilters {
@@ -10,6 +11,7 @@ export interface RecipeFilters {
   maxDuration?: number;
   minServings?: number;
   tags?: string[];
+  onlyFavorites?: boolean;
 }
 
 async function fetchRecipes(filters?: RecipeFilters): Promise<RecipeRecord[]> {
@@ -26,6 +28,9 @@ async function fetchRecipes(filters?: RecipeFilters): Promise<RecipeRecord[]> {
   }
   if (filters?.tags && filters.tags.length > 0) {
     params.append('tags', filters.tags.join(','));
+  }
+  if (filters?.onlyFavorites) {
+    params.append('onlyFavorites', 'true');
   }
 
   const url = `/api/recipes${params.toString() ? `?${params.toString()}` : ''}`;
@@ -107,9 +112,12 @@ export function RecipeList({ filters }: RecipeListProps) {
                 <h3 className="text-lg font-semibold text-neutral-900 transition-colors group-hover:text-brand">
                   {recipe.title}
                 </h3>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                  {recipe.duration_minutes} min
-                </span>
+                <div className="flex items-center gap-1">
+                  <FavoriteButton recipe={recipe} variant="compact" />
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                    {recipe.duration_minutes} min
+                  </span>
+                </div>
               </header>
               <p className="mt-3 text-sm text-neutral-600">
                 {preview}

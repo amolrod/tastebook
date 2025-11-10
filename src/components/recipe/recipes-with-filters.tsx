@@ -15,7 +15,8 @@ export function RecipesWithFilters() {
     search: searchParams.get('q') || '',
     maxDuration: searchParams.get('maxDuration') ? parseInt(searchParams.get('maxDuration')!, 10) : undefined,
     minServings: searchParams.get('minServings') ? parseInt(searchParams.get('minServings')!, 10) : undefined,
-    tags: searchParams.get('tags')?.split(',').filter(Boolean) || []
+    tags: searchParams.get('tags')?.split(',').filter(Boolean) || [],
+    onlyFavorites: searchParams.get('onlyFavorites') === 'true'
   }));
 
   const handleFiltersChange = (newFilters: RecipeFilters) => {
@@ -35,6 +36,9 @@ export function RecipesWithFilters() {
     if (newFilters.tags.length > 0) {
       params.set('tags', newFilters.tags.join(','));
     }
+    if (newFilters.onlyFavorites) {
+      params.set('onlyFavorites', 'true');
+    }
 
     const queryString = params.toString();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,7 +51,8 @@ export function RecipesWithFilters() {
     search: filters.search || undefined,
     maxDuration: filters.maxDuration,
     minServings: filters.minServings,
-    tags: filters.tags.length > 0 ? filters.tags : undefined
+    tags: filters.tags.length > 0 ? filters.tags : undefined,
+    onlyFavorites: filters.onlyFavorites
   };
 
   return (

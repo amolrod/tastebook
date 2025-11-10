@@ -3,6 +3,7 @@
 import { Clock, FileText, Tags, Users } from 'lucide-react';
 import { RecipeEditForm } from '@/components/recipe/recipe-edit-form';
 import { DeleteRecipeButton } from '@/components/recipe/delete-recipe-button';
+import { FavoriteButton } from '@/components/recipe/favorite-button';
 import type { RecipeRecord } from '@/lib/supabase/types';
 
 interface RecipeContentProps {
@@ -50,6 +51,7 @@ export function RecipeContent({ recipe }: RecipeContentProps) {
             {recipe.updated_at !== recipe.created_at ? ` · Actualizada el ${updatedAt}` : ''}
           </p>
           <div className="flex gap-2">
+            <FavoriteButton recipe={recipe} variant="default" />
             <RecipeEditForm recipe={recipe} />
             <DeleteRecipeButton recipe={recipe} />
           </div>

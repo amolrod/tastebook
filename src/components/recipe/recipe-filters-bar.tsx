@@ -10,6 +10,7 @@ export interface RecipeFilters {
   maxDuration?: number;
   minServings?: number;
   tags: string[];
+  onlyFavorites?: boolean;
 }
 
 interface RecipeFiltersProps {
@@ -31,7 +32,8 @@ const SERVINGS_OPTIONS = [
 ];
 
 export function RecipeFiltersBar({ filters, onFiltersChange }: RecipeFiltersProps) {
-  const hasActiveFilters = filters.maxDuration || filters.minServings || filters.tags.length > 0;
+  const hasActiveFilters =
+    filters.maxDuration || filters.minServings || filters.tags.length > 0 || filters.onlyFavorites;
 
   const handleSearchChange = (value: string) => {
     onFiltersChange({ ...filters, search: value });
@@ -51,12 +53,20 @@ export function RecipeFiltersBar({ filters, onFiltersChange }: RecipeFiltersProp
     });
   };
 
+  const handleFavoritesToggle = () => {
+    onFiltersChange({
+      ...filters,
+      onlyFavorites: !filters.onlyFavorites
+    });
+  };
+
   const handleClearFilters = () => {
     onFiltersChange({
       search: filters.search, // Mantener búsqueda
       maxDuration: undefined,
       minServings: undefined,
-      tags: []
+      tags: [],
+      onlyFavorites: false
     });
   };
 
@@ -65,7 +75,8 @@ export function RecipeFiltersBar({ filters, onFiltersChange }: RecipeFiltersProp
       search: '',
       maxDuration: undefined,
       minServings: undefined,
-      tags: []
+      tags: [],
+      onlyFavorites: false
     });
   };
 
@@ -97,6 +108,22 @@ export function RecipeFiltersBar({ filters, onFiltersChange }: RecipeFiltersProp
             </button>
           )}
         </div>
+      </div>
+
+      {/* Filtro de favoritos */}
+      <div className="space-y-2">
+        <Label className="text-sm font-semibold">Mostrar solo</Label>
+        <button
+          type="button"
+          onClick={handleFavoritesToggle}
+          className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
+            filters.onlyFavorites
+              ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
+              : 'border-neutral-200 bg-white text-neutral-700 hover:border-yellow-300 hover:text-yellow-700'
+          }`}
+        >
+          ⭐ Favoritos
+        </button>
       </div>
 
       {/* Filtros de duración */}

@@ -38,6 +38,7 @@ export async function GET(request: Request) {
   const maxDuration = searchParams.get('maxDuration');
   const minServings = searchParams.get('minServings');
   const tagsParam = searchParams.get('tags');
+  const onlyFavorites = searchParams.get('onlyFavorites') === 'true';
 
   // Construir query base
   let query = supabase
@@ -71,6 +72,10 @@ export async function GET(request: Request) {
     if (tags.length > 0) {
       query = query.overlaps('tags', tags);
     }
+  }
+
+  if (onlyFavorites) {
+    query = query.eq('is_favorite', true);
   }
 
   const { data, error } = await query;
