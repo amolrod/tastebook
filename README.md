@@ -57,6 +57,8 @@ Consulta `docs/EXTRACCION.md` para conocer el algoritmo y sus limitaciones.
 - Usa React Query para refrescar tras cada guardado.
 - Protegeremos esta ruta con Supabase Auth conforme avancemos (ya admite sesión para guardar/listar).
 
+![Vista del recetario](./assets/tastebook-recetario.png)
+
 ## Autenticación
 
 - `/login` ofrece enlace mágico por correo o acceso con GitHub (ambos gratuitos en Supabase).
