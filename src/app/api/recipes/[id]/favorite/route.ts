@@ -44,6 +44,14 @@ export async function PATCH(request: Request, context: RouteContext) {
     .maybeSingle();
 
   if (fetchError) {
+    console.error('Error fetching recipe:', fetchError);
+    // Si el error es por columna inexistente, dar mensaje más claro
+    if (fetchError.message?.includes('is_favorite')) {
+      return NextResponse.json(
+        { error: 'La columna is_favorite no existe. Ejecuta la migración 0002_add_is_favorite.sql' },
+        { status: 500 }
+      );
+    }
     return NextResponse.json({ error: 'Error al verificar receta' }, { status: 500 });
   }
 
@@ -56,7 +64,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   // 5. Toggle is_favorite
-  const newFavoriteState = !existingRecipe.is_favorite;
+  const newFavoriteState = !(existingRecipe.is_favorite ?? false);
 
   const { data: updatedRecipe, error: updateError } = await supabase
     .from('recipes')

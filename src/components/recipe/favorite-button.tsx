@@ -11,6 +11,7 @@ interface FavoriteButtonProps {
 
 export function FavoriteButton({ recipe, variant = 'default' }: FavoriteButtonProps) {
   const toggleMutation = useToggleFavorite();
+  const isFavorite = recipe.is_favorite ?? false;
 
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault(); // Evitar navegación si está dentro de un Link
@@ -26,11 +27,11 @@ export function FavoriteButton({ recipe, variant = 'default' }: FavoriteButtonPr
         onClick={handleToggle}
         disabled={toggleMutation.isPending}
         className="group/fav rounded-full p-2 transition hover:bg-neutral-100 disabled:opacity-50"
-        aria-label={recipe.is_favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+        aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
       >
         <Star
           className={`h-4 w-4 transition ${
-            recipe.is_favorite
+            isFavorite
               ? 'fill-yellow-400 text-yellow-400'
               : 'text-neutral-400 group-hover/fav:text-yellow-400'
           }`}
@@ -46,17 +47,17 @@ export function FavoriteButton({ recipe, variant = 'default' }: FavoriteButtonPr
       onClick={handleToggle}
       disabled={toggleMutation.isPending}
       className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition disabled:opacity-50 ${
-        recipe.is_favorite
+        isFavorite
           ? 'border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
           : 'border-neutral-200 bg-white text-neutral-700 hover:border-yellow-300 hover:text-yellow-700'
       }`}
-      aria-label={recipe.is_favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+      aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
     >
       <Star
-        className={`h-4 w-4 transition ${recipe.is_favorite ? 'fill-yellow-400 text-yellow-400' : ''}`}
+        className={`h-4 w-4 transition ${isFavorite ? 'fill-yellow-400 text-yellow-400' : ''}`}
         aria-hidden
       />
-      {recipe.is_favorite ? 'Favorito' : 'Marcar favorito'}
+      {isFavorite ? 'Favorito' : 'Marcar favorito'}
     </button>
   );
 }

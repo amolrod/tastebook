@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type { RecipeRecord } from '@/lib/supabase/types';
 
 interface UpdateRecipeInput {
@@ -50,6 +51,11 @@ export function useUpdateRecipe() {
       queryClient.invalidateQueries({ queryKey: ['recipes'] });
       // Invalidar cache de la receta específica
       queryClient.invalidateQueries({ queryKey: ['recipe', updatedRecipe.id] });
+
+      toast.success('Cambios guardados');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Error al guardar los cambios');
     }
   });
 }

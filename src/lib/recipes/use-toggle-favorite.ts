@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type { RecipeRecord } from '@/lib/supabase/types';
 
 interface ToggleFavoriteInput {
@@ -67,11 +68,16 @@ export function useToggleFavorite() {
       if (context?.previousRecipe) {
         queryClient.setQueryData(['recipe', variables.id], context.previousRecipe);
       }
+      
+      toast.error(error.message || 'Error al actualizar favorito');
     },
     onSuccess: (updatedRecipe) => {
       // Invalidar para refrescar con datos del servidor
       queryClient.invalidateQueries({ queryKey: ['recipes'] });
       queryClient.invalidateQueries({ queryKey: ['recipe', updatedRecipe.id] });
+
+      const message = updatedRecipe.is_favorite ? 'Añadido a favoritos' : 'Quitado de favoritos';
+      toast.success(message);
     }
   });
 }

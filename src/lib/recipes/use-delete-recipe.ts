@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface DeleteRecipeInput {
   id: string;
@@ -27,8 +28,13 @@ export function useDeleteRecipe() {
     onSuccess: () => {
       // Invalidar cache de lista de recetas
       queryClient.invalidateQueries({ queryKey: ['recipes'] });
+      // Mostrar toast de éxito
+      toast.success('Receta eliminada');
       // Redirigir a la lista de recetas
       router.push('/app');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Error al eliminar la receta');
     }
   });
 }

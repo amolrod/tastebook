@@ -16,7 +16,12 @@ pnpm run dev
 
 Crea un archivo `.env.local` a partir de `.env.example` con las claves de Supabase y banderas de características.
 
-> **Supabase**: Ejecuta la migración inicial `supabase/migrations/0001_create_recipes.sql` en tu proyecto (puedes usar `supabase db push` o la consola SQL) antes de guardar recetas.
+> **Supabase**: Ejecuta las migraciones en tu proyecto antes de usar la aplicación:
+> 1. `supabase/migrations/0001_create_recipes.sql` - Crea tabla recipes
+> 2. `supabase/migrations/0002_add_is_favorite.sql` - Añade columna is_favorite
+>
+> Puedes usar `supabase db push` o ejecutar el SQL manualmente en el SQL Editor de Supabase Dashboard.
+> Ver `docs/MIGRATIONS.md` para instrucciones detalladas.
 
 ## Scripts clave
 - `pnpm dev`: arranca la aplicación en modo desarrollo.

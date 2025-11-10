@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Inter } from 'next/font/google';
 import { ReactNode } from 'react';
+import { Toaster } from 'sonner';
 import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { cn } from '@/lib/utils/cn';
@@ -90,6 +91,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               </div>
             </footer>
           </div>
+          <Toaster position="bottom-right" richColors />
         </AppProviders>
       </body>
     </html>

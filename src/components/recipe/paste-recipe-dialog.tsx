@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { type ChangeEvent, useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { parseRecipeFromText, type ParsedRecipe } from '@/lib/recipes/parse';
 import { Button } from '@/components/ui/button';
 import {
@@ -110,7 +111,8 @@ export function PasteRecipeDialog() {
     }
     startSavingTransition(async () => {
       setSaveError(null);
-      try {
+      
+      const savePromise = (async () => {
         const response = await fetch('/api/recipes', {
           method: 'POST',
           headers: {
@@ -135,13 +137,16 @@ export function PasteRecipeDialog() {
         await queryClient.invalidateQueries({ queryKey: ['recipes'] });
         resetDialog();
         setOpen(false);
-      } catch (error) {
-        if (error instanceof Error) {
-          setSaveError(error.message);
-        } else {
-          setSaveError('No se pudo guardar la receta');
+      })();
+
+      toast.promise(savePromise, {
+        loading: 'Guardando receta...',
+        success: 'Receta guardada con éxito',
+        error: (err) => {
+          setSaveError(err.message);
+          return err.message || 'Error al guardar la receta';
         }
-      }
+      });
     });
   };
 
