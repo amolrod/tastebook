@@ -2,6 +2,8 @@
 
 Recetario colaborativo con instalación como PWA, sincronizado con Supabase y extracción inteligente de recetas pegadas desde texto plano.
 
+![Vista principal de Tastebook](./assets/tastebook-dashboard.png)
+
 ## Requisitos
 
 - Node.js 18.17+ y pnpm 8+
